@@ -31,6 +31,23 @@ def get_or_create_product(entry):
     )
 
 
+def ensure_tax_settings():
+    s = stripe.tax.Settings.retrieve()
+    if s.head_office and getattr(s.head_office, "address", None) and s.head_office.address.get("line1"):
+        print("Tax head office already configured")
+        return
+    stripe.tax.Settings.modify(
+        head_office={"address": {
+            "country": "US", "line1": "Lithia Springs", "city": "Lithia Springs",
+            "state": "GA", "postal_code": "30122",
+        }},
+        defaults={"tax_behavior": "exclusive"},
+    )
+    print("Tax head office configured")
+
+
+ensure_tax_settings()
+
 for entry in CATALOG:
     product = get_or_create_product(entry)
     for p in entry["prices"]:

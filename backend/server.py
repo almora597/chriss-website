@@ -13,6 +13,8 @@ from typing import List, Optional, Annotated
 from datetime import datetime, timezone, timedelta, date, time
 from bson import ObjectId
 from pydantic import BeforeValidator
+from pymongo import ASCENDING
+from pymongo.errors import DuplicateKeyError
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -371,9 +373,13 @@ async def create_booking(payload: BookingCreate):
         "deposit_paid": False,
         "deposit_amount": DEPOSIT_AMOUNT,
         "session_id": None,
+        "slot_key": f"{payload.booking_date}_{payload.time_slot}",
         "created_at": now_utc().isoformat(),
     }
-    await db.bookings.insert_one(doc)
+    try:
+        await db.bookings.insert_one(doc)
+    except DuplicateKeyError:
+        raise HTTPException(status_code=409, detail="Selected time slot is no longer available")
     return booking_from_doc(doc)
 
 
@@ -415,6 +421,8 @@ async def update_status(booking_id: str, payload: StatusUpdate, admin=Depends(re
     if not doc:
         raise HTTPException(status_code=404, detail="Booking not found")
     await db.bookings.update_one({"id": booking_id}, {"$set": {"status": payload.status}})
+    if payload.status == "cancelled":
+        await db.bookings.update_one({"id": booking_id}, {"$unset": {"slot_key": ""}})
     doc["status"] = payload.status
     await notify_status_change(doc)
     return doc
@@ -427,7 +435,8 @@ async def reschedule(booking_id: str, payload: RescheduleRequest, admin=Depends(
         raise HTTPException(status_code=404, detail="Booking not found")
     await db.bookings.update_one(
         {"id": booking_id},
-        {"$set": {"booking_date": payload.booking_date, "time_slot": payload.time_slot}},
+        {"$set": {"booking_date": payload.booking_date, "time_slot": payload.time_slot,
+                  "slot_key": f"{payload.booking_date}_{payload.time_slot}"}},
     )
     doc["booking_date"] = payload.booking_date
     doc["time_slot"] = payload.time_slot
@@ -532,6 +541,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+async def create_indexes():
+    await db.bookings.create_index([("slot_key", ASCENDING)], unique=True, sparse=True)
 
 
 @app.on_event("shutdown")
