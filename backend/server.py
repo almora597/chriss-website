@@ -577,12 +577,13 @@ async def admin_update_hours(payload: HoursUpdate, admin=Depends(require_admin))
     clean = {}
     for k in ["0", "1", "2", "3", "4", "5", "6"]:
         d = payload.days.get(k, DEFAULT_HOURS[k])
-        clean[k] = {
-            "closed": bool(d.get("closed", False)),
-            "open": int(d.get("open", 8)),
-            "close": int(d.get("close", 17)),
-            "slot": int(d.get("slot", 60)),
-        }
+        closed = bool(d.get("closed", False))
+        open_h = int(d.get("open", 8))
+        close_h = int(d.get("close", 17))
+        slot = int(d.get("slot", 60))
+        if not closed and (close_h <= open_h or slot <= 0 or open_h < 0 or close_h > 24):
+            raise HTTPException(status_code=400, detail=f"Invalid hours for {DAY_NAMES[int(k)]}: open must be before close and slot must be positive.")
+        clean[k] = {"closed": closed, "open": open_h, "close": close_h, "slot": slot}
     await db.settings.update_one(
         {"key": "business_hours"}, {"$set": {"days": clean}}, upsert=True
     )
@@ -594,7 +595,10 @@ async def admin_update_hours(payload: HoursUpdate, admin=Depends(require_admin))
 # ---------------------------------------------------------------------------
 @api_router.get("/bookings/manage/{token}")
 async def manage_get(token: str):
-    b = await db.bookings.find_one({"manage_token": token}, {"_id": 0})
+    b = await db.bookings.find_one(
+        {"manage_token": token},
+        {"_id": 0, "slot_key": 0, "origin_url": 0, "session_id": 0},
+    )
     if not b:
         raise HTTPException(status_code=404, detail="Booking not found")
     return b
@@ -643,7 +647,11 @@ async def manage_reschedule(token: str, payload: RescheduleRequest):
     except DuplicateKeyError:
         raise HTTPException(status_code=409, detail="That time slot was just taken. Please pick another.")
     b.update({"booking_date": payload.booking_date, "time_slot": payload.time_slot, "status": "pending"})
-    await notify_status_change({**b, "status": "confirmed"})
+    resched_html = _email_wrap(
+        "Your appointment has been rescheduled",
+        _booking_rows(b) + '<tr><td colspan="2" style="padding-top:12px;color:#333;">Your new time is booked. Our team will re-confirm your slot shortly.</td></tr>',
+    )
+    await send_email(b["customer_email"], "Rosas Auto Works — Appointment Rescheduled", resched_html)
     if OWNER_EMAIL:
         await send_email(OWNER_EMAIL, "Booking Rescheduled by Customer",
                          _email_wrap("A customer rescheduled their appointment", _booking_rows(b)))
