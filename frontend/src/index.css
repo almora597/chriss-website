@@ -11,40 +11,59 @@ body {
 
 @layer base {
     :root {
-        --background: 0 0% 100%;
-        --foreground: 0 0% 4%;
-        --card: 0 0% 100%;
-        --card-foreground: 0 0% 4%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 4%;
-        --primary: 355 78% 56%;
-        --primary-foreground: 0 0% 100%;
-        --secondary: 210 8% 11%;
-        --secondary-foreground: 0 0% 100%;
-        --muted: 240 5% 96%;
-        --muted-foreground: 240 4% 46%;
-        --accent: 240 5% 96%;
-        --accent-foreground: 0 0% 4%;
-        --destructive: 0 63% 31%;
-        --destructive-foreground: 0 0% 100%;
-        --border: 240 6% 90%;
-        --input: 240 6% 90%;
-        --ring: 355 78% 56%;
-        --chart-1: 355 78% 56%;
-        --chart-2: 210 8% 11%;
-        --chart-3: 197 37% 24%;
+        --background: 0 0% 3%;
+        --foreground: 43 22% 93%;
+        --card: 0 0% 7%;
+        --card-foreground: 43 22% 93%;
+        --popover: 0 0% 7%;
+        --popover-foreground: 43 22% 93%;
+        --primary: 25 65% 48%;
+        --primary-foreground: 0 0% 4%;
+        --secondary: 0 0% 13%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 0 0% 11%;
+        --muted-foreground: 45 4% 60%;
+        --accent: 0 0% 13%;
+        --accent-foreground: 43 22% 93%;
+        --destructive: 0 63% 40%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 16%;
+        --input: 0 0% 18%;
+        --ring: 25 65% 48%;
+        --chart-1: 25 65% 48%;
+        --chart-2: 28 80% 64%;
+        --chart-3: 45 6% 84%;
         --chart-4: 43 74% 66%;
         --chart-5: 27 87% 67%;
         --radius: 0.25rem;
+        --copper: 25 65% 48%;
+        --copper-light: 28 84% 64%;
+        --silver: 45 6% 84%;
     }
 }
 
 @layer base {
     * { @apply border-border; }
-    body { @apply bg-background text-foreground; }
+    body {
+        @apply bg-background text-foreground;
+        background-image:
+            radial-gradient(circle at 80% 2%, hsl(25 65% 48% / 0.10), transparent 34rem),
+            radial-gradient(circle at 8% 60%, hsl(25 65% 48% / 0.05), transparent 28rem);
+        background-attachment: fixed;
+    }
     h1, h2, h3, h4, h5 { font-family: "Cabinet Grotesk", sans-serif; }
 }
 
-::selection { background: hsl(var(--primary)); color: #fff; }
+::selection { background: hsl(var(--primary)); color: #0a0a0a; }
 
 .font-heading { font-family: "Cabinet Grotesk", sans-serif; }
+
+.text-silver { color: hsl(var(--silver)); }
+.text-copper { color: hsl(var(--copper-light)); }
+
+.logo-silver {
+    background: linear-gradient(180deg, #f4f2ec 0%, #cfcdc7 45%, #9a9994 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}

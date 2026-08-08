@@ -23,10 +23,10 @@ export default function AdminLogin() {
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white transition-colors mb-8" data-testid="admin-back-home">
           <ArrowLeft weight="bold" size={16} /> Back to site
         </button>
-        <div className="bg-white border border-border p-8">
-          <div className="flex items-center gap-2 mb-6">
-            <Wrench weight="fill" size={28} className="text-primary" />
-            <span className="font-heading font-extrabold text-xl tracking-tight">ROSAS <span className="text-primary">AUTO WORKS</span></span>
+        <div className="bg-card border border-border p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <img src="/logo.jpg" alt="Rosas emblem" className="h-11 w-11 object-cover rounded-sm ring-1 ring-primary/40" />
+            <span className="font-heading font-extrabold text-xl tracking-tight"><span className="logo-silver">ROSAS</span> <span className="text-primary">AUTO WORKS</span></span>
           </div>
           <h1 className="font-heading font-black text-3xl uppercase tracking-tighter">Staff Dashboard</h1>
           <p className="text-muted-foreground mt-2 text-sm">Sign in with your authorized Google account to manage bookings.</p>

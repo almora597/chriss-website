@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   SignOut, ListChecks, CalendarBlank, CheckCircle, XCircle, Clock, Car,
-  CurrencyDollar, ArrowsClockwise, Wrench,
+  CurrencyDollar, ArrowsClockwise, Wrench, Gear,
 } from "@phosphor-icons/react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 const STATUS_TABS = ["all", "pending", "confirmed", "completed", "cancelled"];
 const STATUS_STYLE = {
@@ -30,6 +31,28 @@ export default function AdminDashboard() {
   const [view, setView] = useState("list"); // list | calendar
   const [reschedule, setReschedule] = useState(null);
   const [rescheduleData, setRescheduleData] = useState({ booking_date: "", time_slot: "" });
+  const [hoursOpen, setHoursOpen] = useState(false);
+  const [hours, setHours] = useState(null);
+  const [dayNames, setDayNames] = useState([]);
+
+  const openHours = async () => {
+    try {
+      const { data } = await api.get("/admin/settings/hours");
+      setHours(data.days);
+      setDayNames(data.day_names);
+      setHoursOpen(true);
+    } catch { toast.error("Failed to load hours"); }
+  };
+
+  const setDay = (k, field, value) => setHours((h) => ({ ...h, [k]: { ...h[k], [field]: value } }));
+
+  const saveHours = async () => {
+    try {
+      await api.patch("/admin/settings/hours", { days: hours });
+      toast.success("Business hours updated");
+      setHoursOpen(false);
+    } catch { toast.error("Save failed"); }
+  };
 
   const load = useCallback(async () => {
     try {
@@ -90,6 +113,9 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-xs text-white/60 hidden sm:block" data-testid="admin-user-email">{user?.email}</span>
+            <button onClick={openHours} data-testid="admin-hours-btn" className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">
+              <Gear weight="bold" size={16} /> <span className="hidden sm:inline">Hours</span>
+            </button>
             <button onClick={doLogout} data-testid="admin-logout-btn" className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">
               <SignOut weight="bold" size={16} /> Logout
             </button>
@@ -105,7 +131,7 @@ export default function AdminDashboard() {
           {statCards.map((c) => {
             const Icon = c.icon;
             return (
-              <div key={c.label} className="bg-white p-5" data-testid={`stat-${c.label.toLowerCase()}`}>
+              <div key={c.label} className="bg-card p-5" data-testid={`stat-${c.label.toLowerCase()}`}>
                 <Icon weight="bold" size={22} className="text-primary" />
                 <p className="font-heading font-black text-3xl mt-3 leading-none">{c.value}</p>
                 <p className="text-xs uppercase tracking-widest text-muted-foreground mt-1">{c.label}</p>
@@ -116,7 +142,7 @@ export default function AdminDashboard() {
 
         {/* Controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 mt-8">
-          <div className="flex flex-wrap gap-1 bg-white border border-border p-1">
+          <div className="flex flex-wrap gap-1 bg-card border border-border p-1">
             {STATUS_TABS.map((t) => (
               <button
                 key={t}
@@ -128,14 +154,14 @@ export default function AdminDashboard() {
               </button>
             ))}
           </div>
-          <div className="flex gap-1 bg-white border border-border p-1">
+          <div className="flex gap-1 bg-card border border-border p-1">
             <button data-testid="view-list" onClick={() => setView("list")} className={`px-4 py-2 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 ${view === "list" ? "bg-secondary text-white" : "text-muted-foreground"}`}><ListChecks weight="bold" size={16} /> List</button>
             <button data-testid="view-calendar" onClick={() => setView("calendar")} className={`px-4 py-2 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 ${view === "calendar" ? "bg-secondary text-white" : "text-muted-foreground"}`}><CalendarBlank weight="bold" size={16} /> Calendar</button>
           </div>
         </div>
 
         {bookings.length === 0 && (
-          <div className="bg-white border border-border p-12 text-center mt-6" data-testid="no-bookings">
+          <div className="bg-card border border-border p-12 text-center mt-6" data-testid="no-bookings">
             <Car weight="light" size={48} className="text-muted-foreground mx-auto" />
             <p className="font-heading font-bold uppercase mt-4">No bookings here yet</p>
           </div>
@@ -196,7 +222,7 @@ export default function AdminDashboard() {
         {view === "calendar" && bookings.length > 0 && (
           <div className="grid gap-4 mt-6 md:grid-cols-2 lg:grid-cols-3" data-testid="calendar-view">
             {sortedDates.map((d) => (
-              <div key={d} className="bg-white border border-border">
+              <div key={d} className="bg-card border border-border">
                 <div className="bg-secondary text-white px-4 py-2.5 flex items-center gap-2">
                   <CalendarBlank weight="bold" size={16} className="text-primary" />
                   <span className="text-xs font-bold uppercase tracking-widest">{new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}</span>
@@ -234,6 +260,45 @@ export default function AdminDashboard() {
           </div>
           <DialogFooter>
             <button data-testid="reschedule-submit" onClick={submitReschedule} className="bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold uppercase tracking-widest">Save & Notify</button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Business hours dialog */}
+      <Dialog open={hoursOpen} onOpenChange={setHoursOpen}>
+        <DialogContent data-testid="hours-dialog" className="max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="font-heading uppercase">Business Hours & Slots</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            {hours && ["0","1","2","3","4","5","6"].map((k) => (
+              <div key={k} className="border border-border p-3" data-testid={`hours-day-${k}`}>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sm uppercase tracking-wide">{dayNames[k] || dayNames[Number(k)]}</span>
+                  <label className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
+                    Open
+                    <Switch data-testid={`hours-open-toggle-${k}`} checked={!hours[k].closed} onCheckedChange={(v) => setDay(k, "closed", !v)} />
+                  </label>
+                </div>
+                {!hours[k].closed && (
+                  <div className="grid grid-cols-3 gap-2 mt-3">
+                    <div>
+                      <Label className="text-[10px] uppercase tracking-widest">Open (h)</Label>
+                      <Input data-testid={`hours-openh-${k}`} type="number" min="0" max="23" className="mt-1" value={hours[k].open} onChange={(e) => setDay(k, "open", Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] uppercase tracking-widest">Close (h)</Label>
+                      <Input data-testid={`hours-closeh-${k}`} type="number" min="1" max="24" className="mt-1" value={hours[k].close} onChange={(e) => setDay(k, "close", Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] uppercase tracking-widest">Slot (min)</Label>
+                      <Input data-testid={`hours-slot-${k}`} type="number" min="15" step="15" className="mt-1" value={hours[k].slot} onChange={(e) => setDay(k, "slot", Number(e.target.value))} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <button data-testid="hours-save-btn" onClick={saveHours} className="bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold uppercase tracking-widest">Save Hours</button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

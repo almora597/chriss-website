@@ -109,7 +109,7 @@ export default function Booking() {
           ))}
         </div>
 
-        <div className="bg-white border border-border p-6 sm:p-8 animate-fade-up" key={step}>
+        <div className="bg-card border border-border p-6 sm:p-8 animate-fade-up" key={step}>
           {/* STEP 0: SERVICE */}
           {step === 0 && (
             <div className="space-y-3">

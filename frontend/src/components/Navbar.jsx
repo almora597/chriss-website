@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { List, X, Phone } from "@phosphor-icons/react";
 
-const PHONE = "(770) 555-0142";
+const PHONE = "(470) 390-9940";
 
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -26,12 +26,13 @@ export const Navbar = () => {
     <header
       data-testid="navbar"
       className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-200 ${
-        scrolled ? "bg-white/85 backdrop-blur-md border-b border-border" : "bg-transparent"
+        scrolled ? "bg-background/85 backdrop-blur-md border-b border-border" : "bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
-        <Link to="/" data-testid="logo-link" className="font-heading font-extrabold text-xl tracking-tight">
-          <span className={scrolled ? "text-foreground" : "text-white"}>ROSAS</span>
+        <Link to="/" data-testid="logo-link" className="flex items-center gap-2.5 font-heading font-extrabold text-xl tracking-tight">
+          <img src="/logo.jpg" alt="Rosas Auto Works emblem" className="h-9 w-9 object-cover rounded-sm ring-1 ring-primary/40" />
+          <span className="logo-silver">ROSAS</span>
           <span className="text-primary"> AUTO WORKS</span>
         </Link>
 
@@ -83,7 +84,7 @@ export const Navbar = () => {
       </div>
 
       {open && (
-        <div className="md:hidden bg-white border-b border-border px-5 py-4 flex flex-col gap-4">
+        <div className="md:hidden bg-card border-b border-border px-5 py-4 flex flex-col gap-4">
           {links.map((l) => (
             <a key={l.label} href={l.href} onClick={() => setOpen(false)}
               className="text-sm font-bold uppercase tracking-widest text-foreground">

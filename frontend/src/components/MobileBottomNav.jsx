@@ -16,7 +16,7 @@ export const MobileBottomNav = () => {
   return (
     <nav
       data-testid="mobile-bottom-nav"
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/90 backdrop-blur-md border-t border-border"
+      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/90 backdrop-blur-md border-t border-border"
     >
       <div className="grid grid-cols-4">
         {items.map((it) => {

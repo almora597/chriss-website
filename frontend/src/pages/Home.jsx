@@ -71,7 +71,7 @@ export default function Home() {
                 <ArrowRight weight="bold" size={18} className="transition-transform group-hover:translate-x-1" />
               </button>
               <a
-                href="tel:7705550142"
+                href="tel:4703909940"
                 data-testid="hero-call-btn"
                 className="border border-white/40 text-white px-8 py-4 text-sm font-bold uppercase tracking-widest rounded-sm flex items-center justify-center gap-2 transition-colors hover:bg-white hover:text-black"
               >
@@ -169,7 +169,7 @@ export default function Home() {
                 <p className="text-white/80 mt-4">Book online in minutes or give us a call. A $100 deposit secures your slot and goes straight toward your service.</p>
                 <div className="flex flex-col sm:flex-row gap-4 mt-8">
                   <button data-testid="contact-book-btn" onClick={() => navigate("/book")} className="bg-primary text-primary-foreground px-8 py-4 text-sm font-bold uppercase tracking-widest rounded-sm transition-transform hover:-translate-y-0.5">Book an Appointment</button>
-                  <a href="tel:7705550142" className="border border-white/40 text-white px-8 py-4 text-sm font-bold uppercase tracking-widest rounded-sm flex items-center justify-center gap-2 transition-colors hover:bg-white hover:text-black"><Phone weight="bold" size={18} /> (770) 555-0142</a>
+                  <a href="tel:4703909940" className="border border-white/40 text-white px-8 py-4 text-sm font-bold uppercase tracking-widest rounded-sm flex items-center justify-center gap-2 transition-colors hover:bg-white hover:text-black"><Phone weight="bold" size={18} /> (470) 390-9940</a>
                 </div>
                 <div className="flex items-center gap-2 text-white/70 mt-6 text-sm"><MapPin weight="bold" size={18} className="text-primary" /> Lithia Springs, GA 30122</div>
               </div>

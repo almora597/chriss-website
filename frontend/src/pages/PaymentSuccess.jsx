@@ -34,7 +34,7 @@ export default function PaymentSuccess() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary px-5" data-testid="payment-success-page">
-      <div className="bg-white border border-border max-w-md w-full p-8 text-center">
+      <div className="bg-card border border-border max-w-md w-full p-8 text-center" data-testid="payment-success-card">
         {state === "checking" && (
           <>
             <CircleNotch weight="bold" size={48} className="text-primary animate-spin mx-auto" />
@@ -55,13 +55,16 @@ export default function PaymentSuccess() {
               </div>
             )}
             <button data-testid="success-home-btn" onClick={() => navigate("/")} className="w-full bg-secondary text-white py-3 text-sm font-bold uppercase tracking-widest mt-6 transition-transform hover:-translate-y-0.5">Back to Home</button>
+            {booking?.manage_token && (
+              <button data-testid="success-manage-btn" onClick={() => navigate(`/manage/${booking.manage_token}`)} className="w-full border border-primary text-primary py-3 text-sm font-bold uppercase tracking-widest mt-3 transition-colors hover:bg-primary hover:text-primary-foreground">Manage My Appointment</button>
+            )}
           </>
         )}
         {state === "failed" && (
           <>
             <XCircle weight="fill" size={56} className="text-destructive mx-auto" />
             <h1 className="font-heading font-bold text-2xl uppercase mt-5">Payment Not Confirmed</h1>
-            <p className="text-muted-foreground mt-2 text-sm">We couldn't confirm your deposit. If you were charged, contact us at (770) 555-0142.</p>
+            <p className="text-muted-foreground mt-2 text-sm">We couldn't confirm your deposit. If you were charged, contact us at (470) 390-9940.</p>
             <button data-testid="failed-retry-btn" onClick={() => navigate("/book")} className="w-full bg-primary text-primary-foreground py-3 text-sm font-bold uppercase tracking-widest mt-6">Try Again</button>
           </>
         )}

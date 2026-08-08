@@ -67,23 +67,34 @@ SERVICES = [
     {"id": "fleet", "name": "Fleet Maintenance", "duration": 30, "desc": "Keep your business vehicles on the road."},
 ]
 
-# weekday: 0=Mon ... 6=Sun.  (open_hour, close_hour, slot_minutes) or None if closed
-BUSINESS_HOURS = {
-    0: (8, 17, 60),
-    1: (8, 17, 60),
-    2: (8, 17, 60),
-    3: (8, 17, 60),
-    4: (8, 17, 60),
-    5: (8, 18, 30),   # Saturday
-    6: None,          # Sunday closed
+# weekday: "0"=Mon ... "6"=Sun. Stored in db.settings; editable by admin.
+DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+DEFAULT_HOURS = {
+    "0": {"closed": False, "open": 8, "close": 17, "slot": 60},
+    "1": {"closed": False, "open": 8, "close": 17, "slot": 60},
+    "2": {"closed": False, "open": 8, "close": 17, "slot": 60},
+    "3": {"closed": False, "open": 8, "close": 17, "slot": 60},
+    "4": {"closed": False, "open": 8, "close": 17, "slot": 60},
+    "5": {"closed": False, "open": 8, "close": 18, "slot": 30},
+    "6": {"closed": True, "open": 8, "close": 17, "slot": 60},
 }
 
 
-def generate_day_slots(d: date) -> List[str]:
-    cfg = BUSINESS_HOURS.get(d.weekday())
-    if not cfg:
+async def get_hours() -> dict:
+    doc = await db.settings.find_one({"key": "business_hours"}, {"_id": 0})
+    if not doc:
+        await db.settings.insert_one({"key": "business_hours", "days": DEFAULT_HOURS})
+        return DEFAULT_HOURS
+    return doc.get("days", DEFAULT_HOURS)
+
+
+def generate_day_slots(d: date, hours: dict) -> List[str]:
+    cfg = hours.get(str(d.weekday()))
+    if not cfg or cfg.get("closed"):
         return []
-    open_h, close_h, step = cfg
+    open_h, close_h, step = int(cfg["open"]), int(cfg["close"]), int(cfg["slot"])
+    if step <= 0 or close_h <= open_h:
+        return []
     slots = []
     cur = datetime.combine(d, time(open_h, 0))
     end = datetime.combine(d, time(close_h, 0))
@@ -255,7 +266,8 @@ async def availability(date_str: str):
         d = datetime.strptime(date_str, "%Y-%m-%d").date()
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date")
-    all_slots = generate_day_slots(d)
+    hours = await get_hours()
+    all_slots = generate_day_slots(d, hours)
     # bookings that hold a slot: any not cancelled
     taken_docs = await db.bookings.find(
         {"booking_date": date_str, "status": {"$ne": "cancelled"}}, {"_id": 0, "time_slot": 1}
@@ -318,9 +330,13 @@ def _booking_rows(b: dict) -> str:
 
 async def notify_booking_paid(b: dict):
     rows = _booking_rows(b) + f'<tr><td style="color:#71717A;">Deposit</td><td>${b["deposit_amount"]:.0f} paid ✓</td></tr>'
+    manage_btn = ""
+    if b.get("origin_url") and b.get("manage_token"):
+        link = f'{b["origin_url"]}/manage/{b["manage_token"]}'
+        manage_btn = f'<tr><td colspan="2" style="padding-top:16px;"><a href="{link}" style="background:#E63946;color:#fff;text-decoration:none;padding:12px 20px;font-weight:bold;display:inline-block;">Manage My Appointment</a></td></tr>'
     cust_html = _email_wrap(
         "Your appointment request is received!",
-        rows + '<tr><td colspan="2" style="padding-top:12px;color:#333;">Thanks for choosing Rosas Auto Works. Your deposit is confirmed and our team will review and confirm your slot shortly.</td></tr>',
+        rows + '<tr><td colspan="2" style="padding-top:12px;color:#333;">Thanks for choosing Rosas Auto Works. Your deposit is confirmed and our team will review and confirm your slot shortly.</td></tr>' + manage_btn,
     )
     await send_email(b["customer_email"], "Rosas Auto Works — Appointment Request Received", cust_html)
     if OWNER_EMAIL:
@@ -374,6 +390,8 @@ async def create_booking(payload: BookingCreate):
         "deposit_amount": DEPOSIT_AMOUNT,
         "session_id": None,
         "slot_key": f"{payload.booking_date}_{payload.time_slot}",
+        "manage_token": f"mng_{uuid.uuid4().hex}",
+        "origin_url": None,
         "created_at": now_utc().isoformat(),
     }
     try:
@@ -476,7 +494,10 @@ async def create_checkout(req: CheckoutRequest):
         "created_at": now_utc().isoformat(),
         "updated_at": now_utc().isoformat(),
     })
-    await db.bookings.update_one({"id": req.booking_id}, {"$set": {"session_id": session.id}})
+    await db.bookings.update_one(
+        {"id": req.booking_id},
+        {"$set": {"session_id": session.id, "origin_url": req.origin_url}},
+    )
     return {"checkout_url": session.url, "session_id": session.id}
 
 
@@ -530,6 +551,103 @@ async def stripe_webhook(request: Request):
 @api_router.get("/")
 async def root():
     return {"message": "Rosas Auto Works API"}
+
+
+# ---------------------------------------------------------------------------
+# Business hours settings
+# ---------------------------------------------------------------------------
+class HoursUpdate(BaseModel):
+    days: dict
+
+
+@api_router.get("/settings/hours")
+async def public_hours():
+    hours = await get_hours()
+    return {"days": hours, "day_names": DAY_NAMES}
+
+
+@api_router.get("/admin/settings/hours")
+async def admin_get_hours(admin=Depends(require_admin)):
+    hours = await get_hours()
+    return {"days": hours, "day_names": DAY_NAMES}
+
+
+@api_router.patch("/admin/settings/hours")
+async def admin_update_hours(payload: HoursUpdate, admin=Depends(require_admin)):
+    clean = {}
+    for k in ["0", "1", "2", "3", "4", "5", "6"]:
+        d = payload.days.get(k, DEFAULT_HOURS[k])
+        clean[k] = {
+            "closed": bool(d.get("closed", False)),
+            "open": int(d.get("open", 8)),
+            "close": int(d.get("close", 17)),
+            "slot": int(d.get("slot", 60)),
+        }
+    await db.settings.update_one(
+        {"key": "business_hours"}, {"$set": {"days": clean}}, upsert=True
+    )
+    return {"days": clean, "day_names": DAY_NAMES}
+
+
+# ---------------------------------------------------------------------------
+# Customer self-service: manage booking by token
+# ---------------------------------------------------------------------------
+@api_router.get("/bookings/manage/{token}")
+async def manage_get(token: str):
+    b = await db.bookings.find_one({"manage_token": token}, {"_id": 0})
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    return b
+
+
+@api_router.post("/bookings/manage/{token}/cancel")
+async def manage_cancel(token: str):
+    b = await db.bookings.find_one({"manage_token": token}, {"_id": 0})
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if b["status"] in ("completed", "cancelled"):
+        raise HTTPException(status_code=400, detail=f"Booking is already {b['status']}")
+    await db.bookings.update_one(
+        {"manage_token": token},
+        {"$set": {"status": "cancelled"}, "$unset": {"slot_key": ""}},
+    )
+    b["status"] = "cancelled"
+    await notify_status_change(b)
+    if OWNER_EMAIL:
+        await send_email(OWNER_EMAIL, "Booking Cancelled by Customer",
+                         _email_wrap("A customer cancelled their appointment", _booking_rows(b)))
+    return b
+
+
+@api_router.post("/bookings/manage/{token}/reschedule")
+async def manage_reschedule(token: str, payload: RescheduleRequest):
+    b = await db.bookings.find_one({"manage_token": token}, {"_id": 0})
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if b["status"] in ("completed", "cancelled"):
+        raise HTTPException(status_code=400, detail=f"Booking is already {b['status']}")
+    try:
+        d = datetime.strptime(payload.booking_date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date")
+    hours = await get_hours()
+    if payload.time_slot not in generate_day_slots(d, hours):
+        raise HTTPException(status_code=400, detail="That time is not available on the selected day")
+    new_key = f"{payload.booking_date}_{payload.time_slot}"
+    try:
+        await db.bookings.update_one(
+            {"manage_token": token},
+            {"$set": {"booking_date": payload.booking_date, "time_slot": payload.time_slot,
+                      "slot_key": new_key, "status": "pending"}},
+        )
+    except DuplicateKeyError:
+        raise HTTPException(status_code=409, detail="That time slot was just taken. Please pick another.")
+    b.update({"booking_date": payload.booking_date, "time_slot": payload.time_slot, "status": "pending"})
+    await notify_status_change({**b, "status": "confirmed"})
+    if OWNER_EMAIL:
+        await send_email(OWNER_EMAIL, "Booking Rescheduled by Customer",
+                         _email_wrap("A customer rescheduled their appointment", _booking_rows(b)))
+    return b
 
 
 app.include_router(api_router)

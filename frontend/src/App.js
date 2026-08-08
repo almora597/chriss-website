@@ -9,6 +9,7 @@ import Home from "@/pages/Home";
 import Booking from "@/pages/Booking";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import PaymentCancel from "@/pages/PaymentCancel";
+import ManageBooking from "@/pages/ManageBooking";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 
@@ -72,6 +73,7 @@ function AppRouter() {
       <Route path="/book" element={<Booking />} />
       <Route path="/payment/success" element={<PaymentSuccess />} />
       <Route path="/payment/cancel" element={<PaymentCancel />} />
+      <Route path="/manage/:token" element={<ManageBooking />} />
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
     </Routes>

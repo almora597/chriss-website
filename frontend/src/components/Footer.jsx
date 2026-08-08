@@ -6,9 +6,12 @@ export const Footer = () => (
   <footer className="bg-secondary text-white pt-16 pb-24 md:pb-16" data-testid="footer">
     <div className="max-w-7xl mx-auto px-5 sm:px-8 grid gap-10 md:grid-cols-4">
       <div className="md:col-span-2">
-        <p className="font-heading font-extrabold text-2xl tracking-tight">
-          ROSAS <span className="text-primary">AUTO WORKS</span>
-        </p>
+        <div className="flex items-center gap-3">
+          <img src="/logo.jpg" alt="Rosas Auto Works emblem" className="h-14 w-14 object-cover rounded-sm ring-1 ring-primary/40" />
+          <p className="font-heading font-extrabold text-2xl tracking-tight">
+            <span className="logo-silver">ROSAS</span> <span className="text-primary">AUTO WORKS</span>
+          </p>
+        </div>
         <p className="mt-3 text-white/60 max-w-sm text-sm leading-relaxed">
           One shop. All makes. Real results. Diagnostic-first auto repair for European, Asian, Domestic, Diesel, Performance & Fleet vehicles in Lithia Springs, GA.
         </p>
@@ -16,7 +19,7 @@ export const Footer = () => (
       <div>
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/50 mb-4">Visit</p>
         <p className="flex items-start gap-2 text-sm text-white/80"><MapPin weight="bold" size={18} className="text-primary mt-0.5" /> Lithia Springs, GA 30122</p>
-        <p className="flex items-center gap-2 text-sm text-white/80 mt-3"><Phone weight="bold" size={18} className="text-primary" /> (770) 555-0142</p>
+        <p className="flex items-center gap-2 text-sm text-white/80 mt-3"><Phone weight="bold" size={18} className="text-primary" /> (470) 390-9940</p>
       </div>
       <div>
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/50 mb-4">Hours</p>
