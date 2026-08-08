@@ -1,0 +1,99 @@
+{
+  "theme": "light",
+  "typography": {
+    "headings": "Cabinet Grotesk",
+    "body": "IBM Plex Sans",
+    "hierarchy": {
+      "h1": "text-5xl sm:text-6xl tracking-tighter font-black uppercase",
+      "h2": "text-3xl sm:text-4xl tracking-tight font-bold uppercase",
+      "h3": "text-xl sm:text-2xl font-bold",
+      "h4": "text-lg sm:text-xl font-semibold",
+      "body": "text-base leading-relaxed text-muted-foreground",
+      "labels": "text-xs tracking-[0.2em] uppercase font-bold text-foreground"
+    },
+    "instructions": "Import 'Cabinet Grotesk' via Fontshare or similar, and 'IBM Plex Sans' from Google Fonts in index.html. Never use Inter for headings."
+  },
+  "colors": {
+    "strategy": "Archetype: The Performance Pro. A clean zinc/white base to convey transparency and trust, anchored by heavy obsidian black accents and a high-visibility 'Racing Red' brand color.",
+    "palette": {
+      "background": "#FFFFFF",
+      "foreground": "#0A0A0A",
+      "primary": "#E63946",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#1A1D20",
+      "secondary_foreground": "#FFFFFF",
+      "muted": "#F4F4F5",
+      "muted_foreground": "#71717A",
+      "accent": "#F4F4F5",
+      "accent_foreground": "#0A0A0A",
+      "border": "#E4E4E7",
+      "destructive": "#7F1D1D",
+      "destructive_foreground": "#FFFFFF"
+    },
+    "guidelines": "Limit primary color to CTAs (Book Appointment, Call Now) and key indicators. Use dark slate (#1A1D20) for the 'Why Rosas' section to create strong contrast and 'dark accents' as requested."
+  },
+  "visual_enhancers": {
+    "shadows": "Technical shadows: `shadow-sm` or `shadow-[2px_2px_0px_0px_rgba(0,0,0,0.9)]` for a bold, mechanic/industrial feel. Avoid soft, muddy shadows.",
+    "borders": "Expose the grid. Use 1px solid borders (`border-border`) on cards and containers. Do not use soft card shadows.",
+    "radius": "Minimal roundness. Use `rounded-none` or `rounded-sm` max to maintain a sharp, precise automotive look.",
+    "glassmorphism": "Use strictly for sticky headers and the mobile bottom nav: `bg-white/80 backdrop-blur-md border-b border-border`."
+  },
+  "grids_layouts": {
+    "spacing": "Generous spacing. Use `py-20` or `py-24` for marketing sections. Use `p-6` or `p-8` for inner card paddings.",
+    "hero": "Asymmetric split layout or full-width image with strong gradient overlay (`bg-gradient-to-r from-black/80 via-black/50 to-transparent`). Do not center-align the hero text. Left align.",
+    "services_grid": "Bento Grid: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` with raw HTML/Tailwind, avoiding standard Shadcn cards to allow custom hover states.",
+    "booking_wizard": "Low-friction stepped layout. Centered `max-w-2xl` container. High density, clean Shadcn inputs. Clear active/inactive step indicators.",
+    "admin_dashboard": "High-density technical grid. Sidebar layout (`w-64`) on desktop. Use Shadcn tables for booking lists, and a grid calendar view.",
+    "mobile_nav": "CRITICAL: Implement a fixed mobile bottom navigation (`fixed bottom-0 w-full z-50 bg-white/90 backdrop-blur border-t`). Provide 4 quick actions: Home, Book, Services, Contact."
+  },
+  "components": {
+    "buttons": "Industrial style. `rounded-sm` or square. Hover states must translate up slightly (`hover:-translate-y-0.5`) and shift contrast explicitly.",
+    "forms": "Shadcn UI forms. Inputs must have clear focus rings (`focus:ring-2 focus:ring-primary focus:border-transparent`).",
+    "tables": "Shadcn UI tables for the Admin dashboard. Minimal padding, zebra striping if needed for high data density.",
+    "dialogs": "Use Shadcn Dialog for Reschedule/Cancel flows in the admin dashboard."
+  },
+  "motion": {
+    "interactions": "Snappy, precise transitions. `transition-all duration-200 ease-in-out`.",
+    "page_transitions": "Subtle fade-in for multi-step booking form transitions to prevent jarring jumps."
+  },
+  "accessibility": {
+    "contrast": "Ensure primary red button text is pure white. Dark sections must use off-white text.",
+    "testing": "MANDATORY: Include `data-testid` attributes on all buttons, links, form inputs, and dynamic data items."
+  },
+  "icons": {
+    "library": "@phosphor-icons/react",
+    "installation_command": "yarn add @phosphor-icons/react",
+    "style": "Use 'Regular' or 'Bold' weight consistently. Avoid mixing weights."
+  },
+  "image_urls": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1758767355046-1986dda2d967?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwyfHxhdXRvJTIwcmVwYWlyJTIwc2hvcCUyMG1lY2hhbmljJTIwd29ya2luZyUyMG9uJTIwZW5naW5lfGVufDB8fHx8MTc4NjE1MjA1OHww&ixlib=rb-4.1.0&q=85",
+      "description": "Orange classic car being repaired in garage. Evokes 'All Makes. Real Results.'",
+      "category": "Hero Section Background"
+    },
+    "diagnostics": {
+      "url": "https://images.unsplash.com/photo-1727893380169-4dda123e19f7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHwxfHxjYXIlMjBkaWFnbm9zdGljJTIwdG9vbCUyMHNjcmVlbnxlbnwwfHx8fDE3ODYxNTIwNTh8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Mechanic using laptop inside car.",
+      "category": "Why Rosas / Diagnostic Trust Section"
+    },
+    "shop_exterior": {
+      "url": "https://images.unsplash.com/photo-1619335680796-54f13b88c6ba?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHw0fHxjbGVhbiUyMG1vZGVybiUyMGdhcmFnZSUyMGF1dG8lMjByZXBhaXJ8ZW58MHx8fHwxNzg2MTUyMDU4fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Clean modern white and gray concrete building.",
+      "category": "Contact Section / Shop Info"
+    }
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "NEVER use generic centered layouts or simplistic gradients. Prioritize left-aligned text for better readability.",
+    "DO NOT apply universal transitions like `transition: all`. Apply to specific properties (e.g., `transition-colors`, `transition-transform`).",
+    "DO NOT center align the app container in index.css.",
+    "Always use modern, sharp or slightly rounded button styles with explicit hover state colors.",
+    "NEVER use AI emojis (🤖, 🧠, etc.) for icons. Rely exclusively on Phosphor Icons.",
+    "Implement the mobile bottom nav utilizing `fixed bottom-0 left-0 right-0 z-50`. Hide it on desktop using `md:hidden`.",
+    "Do NOT use transparent backgrounds on dropdowns, modals, or sticky headers. Always use solid or heavily blurred semi-solid backgrounds.",
+    "Avoid using Shadcn Cards extensively in marketing layouts. Use raw HTML/Tailwind for bento grids with 1px borders.",
+    "All interactive elements MUST include a `data-testid` attribute (e.g., `data-testid='book-now-button'`).",
+    "Use sonner for toast notifications (`/app/frontend/src/components/ui/sonner.js`).",
+    "Prioritize optical alignment over geometric alignment. Keep the design 'Technical' and 'Precise'."
+  ],
+  "instructions_to_main_agent": "1. Add Cabinet Grotesk and IBM Plex Sans to index.html. 2. Update Tailwind config with the specified colors and fonts. 3. Install @phosphor-icons/react. 4. Build the Marketing site (Hero, Services, Why Rosas, Contact). 5. Build the multi-step Booking flow using Shadcn forms. 6. Build the Admin Dashboard with layout, booking list, and calendar views. 7. Ensure mobile bottom nav is globally available on small screens."
+}
