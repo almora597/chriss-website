@@ -1,54 +1,92 @@
-import { useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
-import { HOME } from "@/constants/testIds";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import api from "@/lib/api";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+import Home from "@/pages/Home";
+import Booking from "@/pages/Booking";
+import PaymentSuccess from "@/pages/PaymentSuccess";
+import PaymentCancel from "@/pages/PaymentCancel";
+import AdminLogin from "@/pages/AdminLogin";
+import AdminDashboard from "@/pages/AdminDashboard";
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+// AuthCallback handles the Emergent OAuth redirect landing.
+function AuthCallback() {
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
+  const processed = useRef(false);
 
   useEffect(() => {
-    helloWorldApi();
-  }, []);
+    if (processed.current) return;
+    processed.current = true;
+    const hash = window.location.hash;
+    const match = hash.match(/session_id=([^&]+)/);
+    const sessionId = match ? match[1] : null;
+    const finish = async () => {
+      if (!sessionId) { navigate("/admin/login"); return; }
+      try {
+        const { data } = await api.post("/auth/session", { session_id: sessionId });
+        setUser(data);
+        window.history.replaceState(null, "", window.location.pathname);
+        navigate("/admin", { replace: true, state: { user: data } });
+      } catch {
+        navigate("/admin/login", { replace: true });
+      }
+    };
+    finish();
+  }, [navigate, setUser]);
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          data-testid={HOME.emergentLink}
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <div className="min-h-screen flex items-center justify-center bg-secondary text-white">
+      <p className="font-heading uppercase tracking-widest text-sm">Signing you in…</p>
     </div>
   );
-};
+}
+
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!loading && (!user || !user.is_admin)) navigate("/admin/login", { replace: true });
+  }, [user, loading, navigate]);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-secondary text-white">
+        <p className="font-heading uppercase tracking-widest text-sm">Loading…</p>
+      </div>
+    );
+  }
+  if (!user || !user.is_admin) return null;
+  return children;
+}
+
+function AppRouter() {
+  const location = useLocation();
+  // Read hash reactively from useLocation (not window.location.hash).
+  if (location.hash?.includes("session_id=")) return <AuthCallback />;
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/book" element={<Booking />} />
+      <Route path="/payment/success" element={<PaymentSuccess />} />
+      <Route path="/payment/cancel" element={<PaymentCancel />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+    </Routes>
+  );
+}
 
 function App() {
   return (
     <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRouter />
+          <Toaster position="top-center" richColors />
+        </BrowserRouter>
+      </AuthProvider>
     </div>
   );
 }
